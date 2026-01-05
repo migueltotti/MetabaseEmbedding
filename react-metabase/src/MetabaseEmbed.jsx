@@ -1,28 +1,38 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function MetabaseEmbed() {
-  const [url, setUrl] = useState(null);
-  const [error, setError] = useState(null);
+  const [inputUrl, setInputUrl] = useState("");
+  const [iframeUrl, setIframeUrl] = useState("");
 
-  useEffect(() => {
-    fetch("https://localhost:7292/api/metabase/signed-url")
-      .then(res => {
-        if (!res.ok) throw new Error("Erro ao buscar URL do Metabase");
-        return res.json();
-      })
-      .then(data => setUrl(data.url))
-      .catch(err => setError(err.message));
-  }, []);
-
-  if (error) return <p>Erro: {error}</p>;
-  if (!url) return <p>Carregando...</p>;
+  const handleLoadDashboard = () => {
+    if (!inputUrl) return;
+    setIframeUrl(inputUrl);
+  };
 
   return (
-    <iframe
-      src={url}
-      frameBorder="0"
-      style={{ width: "100vw", height: "100vh" }}
-      allowTransparency
-    />
+    <div style={{ width: "100vw", height: "100vh" }}>
+      <div style={{ padding: "12px", display: "flex", gap: "8px" }}>
+        <input
+          type="text"
+          placeholder="Cole aqui o link do dashboard do Metabase"
+          value={inputUrl}
+          onChange={(e) => setInputUrl(e.target.value)}
+          style={{ flex: 1, padding: "8px" }}
+        />
+
+        <button onClick={handleLoadDashboard}>
+          Carregar dashboard
+        </button>
+      </div>
+
+      {iframeUrl && (
+        <iframe
+          src={iframeUrl}
+          frameBorder="0"
+          style={{ width: "100%", height: "100%" }}
+          allowTransparency
+        />
+      )}
+    </div>
   );
 }

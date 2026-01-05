@@ -1,8 +1,10 @@
 services:
   metabase:
-    image: metabase/metabase:latest
+    image: metabase/metabase:v0.56.x
     container_name: metabase
     hostname: metabase
+    env_file:
+      - .env
     volumes:
       - /dev/urandom:/dev/random:ro
     ports:
@@ -12,8 +14,13 @@ services:
       MB_DB_DBNAME: metabaseappdb
       MB_DB_PORT: 5432
       MB_DB_USER: metabase
-      MB_DB_PASS: mysecretpassword
+      MB_DB_PASS: ${POSTGRES_PASSWORD}
       MB_DB_HOST: postgres
+      MB_ENABLE_PUBLIC_SHARING: false
+      MB_EMBEDDING_SECRET_KEY: ${EMBEDDING_SECRET_KEY}
+      MB_ENCRYPTION_SECRET_KEY: ${MB_ENCRYPTION_SECRET_KEY}
+      MB_SITE_LOCALE: pt
+      TZ: America/Sao_Paulo
     networks:
       - metanet1
     healthcheck:
@@ -21,18 +28,30 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+    depends_on:
+      - postgres
+
   postgres:
-    image: postgres:latest
+    image: postgres:16
     container_name: postgres
     hostname: postgres
+    env_file:
+      - .env
+    volumes:
+      - metabase_db_data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: metabase
       POSTGRES_DB: metabaseappdb
-      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: America/Sao_Paulo
     ports:
-      - 3003:5432
+      - 5432:5432
     networks:
       - metanet1
+
 networks:
   metanet1:
     driver: bridge
+
+volumes:
+  metabase_db_data:
